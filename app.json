@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Cassa Mutua Lazio",
+    "slug": "cassa-mutua-lazio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "it.cassamutualazio.app"
+    },
+    "android": {
+      "package": "it.cassamutualazio.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B2440",
+        "foregroundImage": "./assets/images/adaptive-icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      "expo-font",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B2440"
+        }
+      ]
+    ],
+    "scheme": "cassamutualazio",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

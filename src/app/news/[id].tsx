@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import HtmlView from '../../components/HtmlView';
+import { OfflineBanner, ShareButton } from '../../components/ScreenExtras';
 import { ErrorBox, Loading } from '../../components/ui';
 import { fetchPost, formatDate, type WpPost } from '../../lib/wp';
 
@@ -10,13 +11,18 @@ const escape = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': 
 export default function NewsDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [post, setPost] = useState<WpPost | null>(null);
+  const [savedAt, setSavedAt] = useState<number | undefined>();
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
     fetchPost(Number(id))
-      .then((p) => active && setPost(p))
+      .then((r) => {
+        if (!active) return;
+        setPost(r.data);
+        setSavedAt(r.savedAt);
+      })
       .catch(() => active && setError(true));
     return () => {
       active = false;
@@ -42,6 +48,8 @@ export default function NewsDetail() {
 
   return (
     <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ headerRight: () => <ShareButton title={post.title} url={post.link} /> }} />
+      {savedAt ? <OfflineBanner savedAt={savedAt} onRetry={load} /> : null}
       <HtmlView html={html} title={post.title} />
     </View>
   );

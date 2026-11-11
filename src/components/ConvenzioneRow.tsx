@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFavorites } from '../lib/favorites';
 import type { Convenzione } from '../data/site';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -8,9 +10,31 @@ export function openConvenzione(c: Convenzione) {
   else router.push({ pathname: '/convenzione/[slug]', params: { slug: c.slug, name: c.name } });
 }
 
+export function FavoriteButton({ slug, name, size = 24, color = colors.navy }: { slug: string; name: string; size?: number; color?: string }) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const fav = isFavorite(slug);
+  return (
+    <Pressable
+      onPress={() => toggleFavorite(slug)}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel={fav ? `Rimuovi ${name} dai preferiti` : `Aggiungi ${name} ai preferiti`}
+      accessibilityState={{ selected: fav }}
+    >
+      <Ionicons name={fav ? 'heart' : 'heart-outline'} size={size} color={fav ? '#E0466B' : color} />
+    </Pressable>
+  );
+}
+
 export function ConvenzioneRow({ item }: { item: Convenzione }) {
   return (
-    <Pressable onPress={() => openConvenzione(item)} style={({ pressed }) => [s.card, pressed && { opacity: 0.85 }]}>
+    <Pressable
+      onPress={() => openConvenzione(item)}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.name}. ${item.tags}. ${item.highlight ?? ''}`}
+      accessibilityHint="Apre i dettagli della convenzione"
+      style={({ pressed }) => [s.card, pressed && { opacity: 0.85 }]}
+    >
       <View style={s.icon}>
         <Text style={{ fontSize: 24 }}>{item.emoji}</Text>
       </View>
@@ -28,7 +52,7 @@ export function ConvenzioneRow({ item }: { item: Convenzione }) {
           </View>
         ) : null}
       </View>
-      <Text style={s.chev}>›</Text>
+      {item.route ? <Text style={s.chev}>›</Text> : <FavoriteButton slug={item.slug} name={item.name} color="#A7B3C2" />}
     </Pressable>
   );
 }

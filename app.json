@@ -35,6 +35,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#0B2440"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "L'app accede alle tue foto solo per salvare l'immagine della tessera associativa.",
+          "cameraPermission": "L'app usa la fotocamera solo per fotografare la tua tessera associativa.",
+          "microphonePermission": false
+        }
       ]
     ],
     "scheme": "cassamutualazio",

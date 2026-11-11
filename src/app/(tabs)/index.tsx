@@ -6,13 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AreaCard } from '../../components/AreaCard';
 import { Accordion, Button, Card, CheckItem, Eyebrow, SectionTitle, styles as ui } from '../../components/ui';
 import { Footer } from '../../components/Footer';
-import { areas, cessione, contacts, homeFaq, links, testimonials } from '../../data/site';
+import { areas, cessione, contacts, convenzioni, homeFaq, testimonials } from '../../data/site';
+import { ConvenzioneRow } from '../../components/ConvenzioneRow';
+import { useFavorites } from '../../lib/favorites';
 import { openExternal } from '../../lib/navigation';
 import { colors, fonts, gradients, radius } from '../../theme';
 
 const quickActions = [
-  { icon: '🪪', label: 'Tessera digitale', onPress: () => openExternal(links.tesseraDigitale) },
-  { icon: '📝', label: 'Diventa socio', onPress: () => router.push('/diventa-socio') },
+  { icon: '🪪', label: 'La mia tessera', onPress: () => router.push('/tessera') },
+  { icon: '❤️', label: 'Preferiti', onPress: () => router.push('/preferiti') },
   { icon: '💶', label: 'Prestiti', onPress: () => router.push('/prestiti') },
   { icon: '📞', label: 'Chiama', onPress: () => openExternal(contacts.phoneHref) },
 ];
@@ -21,6 +23,8 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width * 0.78, 360);
+  const { favorites } = useFavorites();
+  const favItems = convenzioni.filter((c) => favorites.includes(c.slug)).slice(0, 3);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -66,12 +70,27 @@ export default function Home() {
       {/* AZIONI RAPIDE */}
       <View style={s.quickRow}>
         {quickActions.map((a) => (
-          <Pressable key={a.label} onPress={a.onPress} style={({ pressed }) => [s.quick, pressed && { opacity: 0.8 }]}>
+          <Pressable key={a.label} onPress={a.onPress} accessibilityRole="button" accessibilityLabel={a.label} style={({ pressed }) => [s.quick, pressed && { opacity: 0.8 }]}>
             <Text style={{ fontSize: 24 }}>{a.icon}</Text>
             <Text style={s.quickLabel}>{a.label}</Text>
           </Pressable>
         ))}
       </View>
+
+      {/* PREFERITI */}
+      {favItems.length ? (
+        <View style={{ paddingHorizontal: 18, marginTop: 30, gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <Text style={ui.h3}>I tuoi preferiti</Text>
+            <Pressable onPress={() => router.push('/preferiti')} hitSlop={8} accessibilityRole="button">
+              <Text style={s.topLinkDark}>Vedi tutti</Text>
+            </Pressable>
+          </View>
+          {favItems.map((c) => (
+            <ConvenzioneRow key={c.slug} item={c} />
+          ))}
+        </View>
+      ) : null}
 
       {/* AREE */}
       <View style={{ paddingHorizontal: 18, marginTop: 30 }}>
@@ -203,6 +222,7 @@ const s = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 },
   logo: { width: 190, height: 60 },
   topLink: { fontFamily: fonts.bodySemi, color: colors.periwinkle, fontSize: 14 },
+  topLinkDark: { fontFamily: fonts.bodySemi, color: colors.blue, fontSize: 14 },
   heroCard: {
     marginHorizontal: 16,
     marginTop: 18,

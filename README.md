@@ -8,14 +8,20 @@ Realizzata con [Expo](https://expo.dev) (React Native, SDK 58) ed Expo Router.
 
 | Sezione | Contenuto | Origine dei dati |
 | --- | --- | --- |
-| **Home** | Hero, azioni rapide (tessera digitale, diventa socio, prestiti, chiama), aree dedicate, cessione del quinto, prestiti, testimonianze, FAQ | Testi del sito, inseriti nell'app |
+| **Home** | Hero, azioni rapide (la mia tessera, preferiti, prestiti, chiama), i tuoi preferiti, aree dedicate, cessione del quinto, prestiti, testimonianze, FAQ | Testi del sito, inseriti nell'app |
 | **Servizi** | Ricerca e catalogo di tutte le convenzioni divise per area (Salute, Benessere, Assicurazioni, Tempo libero, Fisco e Legale, Casa e Finanza) | Elenco nell'app + **pagina di dettaglio caricata in tempo reale dal sito** |
-| **Prestiti** | Tabella interattiva delle rate (TAN 5%, € 2.000–5.000), documenti, richiesta di simulazione | Tabella nell'app, modulo del sito |
-| **News** | Tutti gli articoli del sito, con immagini e scorrimento infinito | **In tempo reale** (WordPress REST API) |
+| **Prestiti** | Tabella interattiva delle rate (TAN 5%, € 2.000–5.000), **simulatore** (importo a passi di € 500, durata, interessi e costo totale), documenti, richiesta | Calcolo nell'app (riproduce esattamente la tabella del sito), modulo del sito |
+| **News** | Tutti gli articoli del sito, con immagini, **ricerca** e scorrimento infinito | **In tempo reale** (WordPress REST API) |
 | **Contatti** | Recapiti, sedi con mappe, orari, modulo di contatto (prepara una email alla segreteria), FAQ | Testi del sito |
+| **La mia tessera** | Foto della tessera associativa salvata sul telefono, visibile anche offline | Solo sul dispositivo |
+| **Preferiti** | Convenzioni salvate con il cuore | Solo sul dispositivo |
 | Altre pagine | Chi siamo, Diventa socio (tessera digitale, modulo d'iscrizione, mail precompilata), Cessione del quinto, Link utili | Testi del sito |
 
 Le pagine delle convenzioni e le news si aggiornano da sole quando vengono modificate su WordPress, senza dover pubblicare una nuova versione dell'app.
+
+**Funzionamento offline:** all'avvio l'app scarica in background (una volta al giorno) tutte le pagine delle convenzioni; anche le news e gli articoli letti vengono salvati. Senza connessione l'app mostra l'ultima copia, con un avviso e la data di aggiornamento.
+
+**Condivisione:** ogni convenzione e ogni news ha il pulsante "Condividi" (WhatsApp, email, ecc.).
 
 ## Struttura del codice
 
@@ -30,6 +36,11 @@ src/
   data/site.ts         contenuti statici (contatti, convenzioni, tabella prestiti…)
   lib/wp.ts            lettura dei contenuti da WordPress
   lib/navigation.ts    apertura link (pagine interne, browser, telefono, email)
+  lib/storage.ts       salvataggio locale e copia offline dei contenuti
+  lib/favorites.tsx    convenzioni preferite
+  lib/loan.ts          calcolo rata del prestito
+  lib/tessera.ts       foto della tessera
+docs/                  bozze di privacy policy dell'app e testi per gli store
   theme.ts             colori e font del sito
 ```
 
@@ -64,4 +75,4 @@ Identificativo dell'app: `it.cassamutualazio.app` (configurato in `app.json`).
 
 - Logo e icona in alta risoluzione (le icone attuali sono ricavate dal logo del sito e sono provvisorie).
 - Conferma dei testi e delle condizioni economiche da parte della Cassa Mutua.
-- Privacy policy dell'app e schede degli store (descrizione, screenshot).
+- Privacy policy dell'app e schede degli store: bozze pronte in `docs/`, da far verificare e completare con gli screenshot.

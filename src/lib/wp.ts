@@ -1,4 +1,5 @@
 import { SITE_URL } from '../data/site';
+import { type Fresh, readJson, withOfflineCache, writeJson } from './storage';
 
 const API = `${SITE_URL}/wp-json/wp/v2`;
 
@@ -71,7 +72,7 @@ async function getJson<T>(url: string): Promise<T> {
 
 type RawPage = { id: number; slug: string; link: string; title: { rendered: string }; content: { rendered: string } };
 
-export async function fetchPage(slug: string): Promise<WpPage> {
+async function fetchPageNetwork(slug: string): Promise<WpPage> {
   const list = await getJson<RawPage[]>(`${API}/pages?slug=${encodeURIComponent(slug)}&_fields=id,slug,link,title,content`);
   const p = list[0];
   if (!p) throw new Error('Pagina non trovata');
@@ -102,13 +103,56 @@ function mapPost(p: RawPost): WpPost {
   };
 }
 
-export async function fetchPosts(page = 1, perPage = 10): Promise<WpPost[]> {
-  const list = await getJson<RawPost[]>(`${API}/posts?per_page=${perPage}&page=${page}&_embed=wp:featuredmedia`);
-  return list.map(mapPost);
+/** Pagina del sito, con copia offline. */
+export function fetchPage(slug: string): Promise<Fresh<WpPage>> {
+  return withOfflineCache(`page:${slug}`, () => fetchPageNetwork(slug));
 }
 
-export async function fetchPost(id: number): Promise<WpPost> {
-  return mapPost(await getJson<RawPost>(`${API}/posts/${id}?_embed=wp:featuredmedia`));
+async function fetchPostsNetwork(page: number, perPage: number, search?: string): Promise<WpPost[]> {
+  const q = search ? `&search=${encodeURIComponent(search)}` : '';
+  const list = (await getJson<RawPost[]>(`${API}/posts?per_page=${perPage}&page=${page}&_embed=wp:featuredmedia${q}`)).map(mapPost);
+  // Ogni articolo scaricato resta leggibile anche offline.
+  for (const p of list) void writeJson(`cache:post:${p.id}`, { savedAt: Date.now(), data: p });
+  return list;
+}
+
+/** Elenco news. La prima pagina (senza ricerca) viene salvata per l'uso offline. */
+export function fetchPosts(page = 1, perPage = 10, search?: string): Promise<Fresh<WpPost[]>> {
+  if (page === 1 && !search) return withOfflineCache('posts:first', () => fetchPostsNetwork(page, perPage));
+  return fetchPostsNetwork(page, perPage, search).then((data) => ({ data }));
+}
+
+export function fetchPost(id: number): Promise<Fresh<WpPost>> {
+  return withOfflineCache(`post:${id}`, async () => mapPost(await getJson<RawPost>(`${API}/posts/${id}?_embed=wp:featuredmedia`)));
+}
+
+const PREFETCH_KEY = 'prefetch:convenzioni';
+const DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Scarica in background le pagine delle convenzioni (al massimo una volta al giorno),
+ * così sono consultabili anche senza connessione.
+ */
+export async function prefetchPages(slugs: string[]): Promise<void> {
+  const last = await readJson<number>(PREFETCH_KEY);
+  if (last && Date.now() - last < DAY) return;
+  let ok = 0;
+  for (const slug of slugs) {
+    try {
+      const page = await fetchPageNetwork(slug);
+      await writeJson(`cache:page:${slug}`, { savedAt: Date.now(), data: page });
+      ok++;
+    } catch {
+      // offline o pagina rimossa: si riprova al prossimo avvio
+    }
+  }
+  if (ok === slugs.length) await writeJson(PREFETCH_KEY, Date.now());
+}
+
+export function formatSavedAt(ts: number): string {
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${formatDate(d.toISOString())} alle ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function formatDate(iso: string): string {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { LoanSimulator } from '../../components/LoanSimulator';
 import { Button, Card, CheckItem, Eyebrow, SectionTitle, styles as ui } from '../../components/ui';
 import { links, loans } from '../../data/site';
 import { openExternal } from '../../lib/navigation';
@@ -78,13 +79,17 @@ export default function Prestiti() {
           € 100. La concessione del prestito è soggetta a valutazione e ai requisiti previsti.
         </Text>
 
+        <View style={{ marginTop: 24 }}>
+          <LoanSimulator />
+        </View>
+
         <Card style={{ marginTop: 24 }}>
           <Text style={ui.h3}>Documenti richiesti</Text>
           {loans.documents.map((d) => (
             <CheckItem key={d}>{d}</CheckItem>
           ))}
           <Text style={[ui.body, { marginTop: 14 }]}>
-            Compila il modulo di richiesta di simulazione: è senza alcun impegno. Ti verrà chiesto di caricare l’ultima busta paga
+            Per una proposta personalizzata compila il modulo di richiesta: è senza alcun impegno. Ti verrà chiesto di caricare l’ultima busta paga
             in formato PDF.
           </Text>
           <Button label="Richiedi simulazione del prestito" onPress={() => openExternal(links.formPrestito + '#wpforms-1593')} style={{ marginTop: 16 }} />
